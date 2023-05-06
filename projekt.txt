@@ -1,0 +1,7 @@
+RPG w bash'u
+
+Epicka wyprawa której celem jest ocalenie świata przed zagładą.
+
+- generowany świat
+- trenowanie bohatera i ulepszanie ekwipunku
+- potwory, które za wszelką cenę będą chciały zniszczyć świat
