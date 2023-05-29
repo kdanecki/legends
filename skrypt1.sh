@@ -3,5 +3,5 @@
 set -x
 
 echo skrypt1
-. ./skrypt2.sh
+exec  ./skrypt2.sh
 

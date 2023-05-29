@@ -7,6 +7,7 @@ fun () {
 set -x
 
 echo skrypt2
-echo $$
+echo $DISPLAY
+#echo $$
 
-. ./skrypt3.sh
+#. ./skrypt3.sh
