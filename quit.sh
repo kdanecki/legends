@@ -15,7 +15,7 @@
 # cleaup script 
 
 echo $DISPLAY
-sudo kbdrate --rate=30 --delay=250
+sudo kbdrate -s --rate=30 --delay=250
 #xset r rate 250 20
 while read -t 0.1
 do

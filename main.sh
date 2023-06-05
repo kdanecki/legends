@@ -20,7 +20,7 @@
 #set -x
 
 draw () {
-    echo -n "" > world
+    echo "${world[type]}" > world
 #    echo -n "0 " >> world
 #    echo -n "${world["player,x"]} " >> world    
 #    echo -n "${world["player,y"]} " >> world    
@@ -34,11 +34,49 @@ draw () {
         if [[ ${world["enemy$i,hp"]} == 0 ]] ; then
             STATE=0
         fi
-            echo "1 $STATE ${world["enemy$i,x"]} ${world["enemy$i,y"]}" >> world
+            echo "${world["enemy$i,type"]} $STATE ${world["enemy$i,x"]} ${world["enemy$i,y"]}" >> world
     done
     if [[ ${FIREBALL[spawned]} == 1 ]] ; then
-        echo "2 ${FIREBALL[dir]} ${FIREBALL[x]} ${FIREBALL[y]}" >> world
+        echo "1 ${FIREBALL[dir]} ${FIREBALL[x]} ${FIREBALL[y]}" >> world
     fi
+}
+
+generate () {
+    world[type]=$((RANDOM%3))
+    case $1 in
+        0) for i in `seq 0 10`
+            do
+                world["enemy$i,x"]=$((RANDOM%XSIZE))
+                world["enemy$i,y"]=$((RANDOM%(YSIZE*3/4)))
+                world["enemy$i,type"]=$((2+(RANDOM%3)))
+                world["enemy$i,hp"]=${HP[${world["enemy$i,type"]}]}
+            done
+            ;;
+        1) for i in `seq 0 10`
+            do
+                world["enemy$i,x"]=$(((XSIZE/4) + RANDOM%(XSIZE*3/4)))
+                world["enemy$i,y"]=$((RANDOM%YSIZE))
+                world["enemy$i,type"]=$((2+(RANDOM%3)))
+                world["enemy$i,hp"]=${HP[${world["enemy$i,type"]}]}
+            done
+            ;;
+        2) for i in `seq 0 10`
+            do
+                world["enemy$i,x"]=$((RANDOM%XSIZE))
+                world["enemy$i,y"]=$(((YSIZE/4) + RANDOM%(YSIZE*3/4)))
+                world["enemy$i,type"]=$((2+(RANDOM%3)))
+                world["enemy$i,hp"]=${HP[${world["enemy$i,type"]}]}
+            done
+            ;;
+        3) for i in `seq 0 10`
+            do
+                world["enemy$i,x"]=$((RANDOM%(XSIZE*3/4)))
+                world["enemy$i,y"]=$((RANDOM%YSIZE))
+                world["enemy$i,type"]=$((2+(RANDOM%3)))
+                world["enemy$i,hp"]=${HP[${world["enemy$i,type"]}]}
+            done
+            ;;
+    esac
 }
 
 normalize () {
@@ -61,17 +99,34 @@ tick () {
         fi
     done
     if [[ $action == w ]] ; then
-        player[y]=$((${player[y]}-$SPEED))
+        player[y]=$((${player[y]}-${SPEED[0]}))
     fi
     if [[ $action == a ]] ; then
-        player[x]=$((${player[x]}-$SPEED))
+        player[x]=$((${player[x]}-${SPEED[0]}))
     fi
     if [[ $action == s ]] ; then
-        player[y]=$((${player[y]}+$SPEED))
+        player[y]=$((${player[y]}+${SPEED[0]}))
     fi
     if [[ $action == d ]] ; then
-        player[x]=$((${player[x]}+$SPEED))
+        player[x]=$((${player[x]}+${SPEED[0]}))
     fi
+
+    if [[ ${player[x]} -gt $(($XSIZE-80)) ]] ; then
+        player[x]=15
+        generate 1
+    elif [[ ${player[x]} -lt 10 ]] ; then
+        player[x]=$((XSIZE-90))
+        generate 3
+    elif [[ ${player[y]} -lt 10 ]] ; then
+        player[y]=$((YSIZE-90))
+        generate 0
+    elif [[ ${player[y]} -gt $(($YSIZE-80)) ]] ; then
+        player[y]=15
+        generate 2
+    fi
+
+
+
     draw
 #    echo "bla bla$(normalize 10)"
     if [[ $((TICK--)) -le 0 ]] ; then  
@@ -91,6 +146,7 @@ tick () {
                 if [[ ${player[hp]} -le 0 ]] ; then
                     clear
                     echo "YOU DIED"
+                    echo "You defeated ${player[points]} enemies"
                     exit
                 fi
                 world["enemy$i,hp"]="0"
@@ -101,10 +157,11 @@ tick () {
             then
                 world["enemy$i,hp"]="0"
                 FIREBALL[spawned]=0
+                ((player[points]++))
             fi
             if [[ world["enemy$i,hp"] -gt 0 ]] ; then
-                ((world["enemy$i,y"] += $DIRY * $OSPEED))
-                ((world["enemy$i,x"] += $DIRX * $OSPEED))
+                ((world["enemy$i,y"] += $DIRY * ${SPEED[${world["enemy$i,type"]}]}))
+                ((world["enemy$i,x"] += $DIRX * ${SPEED[${world["enemy$i,type"]}]}))
             fi
         fi
     done
@@ -135,10 +192,10 @@ tick () {
         fi
     else
         case ${FIREBALL[dir]} in
-            0) ((FIREBALL[x] -= $FSPEED)) ;; 
-            1) ((FIREBALL[y] += $FSPEED)) ;; 
-            2) ((FIREBALL[y] -= $FSPEED)) ;; 
-            3) ((FIREBALL[x] += $FSPEED))
+            0) ((FIREBALL[x] -= ${SPEED[1]})) ;; 
+            1) ((FIREBALL[y] += ${SPEED[1]})) ;; 
+            2) ((FIREBALL[y] -= ${SPEED[1]})) ;; 
+            3) ((FIREBALL[x] += ${SPEED[1]}))
         esac
         if [[ ${FIREBALL[x]} -ge $(($XSIZE-70)) || ${FIREBALL[x]} -lt 0 || ${FIREBALL[y]} -ge $YSIZE || ${FIREBALL[y]} -lt 0 ]] ; then
             FIREBALL[spawned]=0
@@ -152,11 +209,27 @@ tick () {
 
 declare -A world
 
+world[type]=0
+
 XSIZE=1920
 YSIZE=1080
-SPEED=5
-FSPEED=10
-OSPEED=3
+
+declare -a SPEED
+SPEED[0]=5
+SPEED[1]=10
+SPEED[2]=2
+SPEED[3]=3
+SPEED[4]=5
+#SPEED=5
+#FSPEED=10
+#OSPEED=1
+declare -a HP
+HP[0]=3
+HP[1]=999
+HP[2]=3
+HP[3]=3
+HP[4]=3
+
 TICK=0
 
 declare -A player
@@ -165,6 +238,7 @@ player[y]=$((RANDOM % (YSIZE-100)))
 player[hp]=3
 player[cx]=72
 player[cy]=72
+player[points]=0
 
 declare -A FIREBALL
 
@@ -181,6 +255,7 @@ do
     world["enemy$i,hp"]=3
     world["enemy$i,cx"]=72
     world["enemy$i,cy"]=72
+    world["enemy$i,type"]=$((2+(RANDOM%3)))
 done
 
 # start the game

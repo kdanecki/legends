@@ -21,8 +21,8 @@ typedef struct creature
 } creature;
 
 char* fb;
-char* bg;
-creature creatures[3];
+char* bg[4];
+creature creatures[5];
 
 void* load_fb()
 {
@@ -79,9 +79,9 @@ void* load_image(char* name)
     }
     offset = 0;
     pa_offset = 0; //offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
-    printf("%ld\n", sb.st_size);
+//    printf("%ld\n", sb.st_size);
     length = sb.st_size - offset;
-    printf("%ld\n", length);
+//    printf("%ld\n", length);
 
     addr = mmap(NULL, length, PROT_WRITE | PROT_READ, MAP_PRIVATE, fd, pa_offset);
     if (addr == MAP_FAILED)
@@ -131,11 +131,14 @@ void redraw(int sig)
     int pos_y;
     int creature;
     int state;
+    int type;
 
     //memset(fb, 0, 1920*1080*4);
     //printf("\x1b[2J");
-    memcpy(fb, bg, 1920*1080*4);
+
     world = fopen("world", "r");
+    fscanf(world, "%d\n", &type);
+    memcpy(fb, bg[type], 1920*1080*4);
     while(fscanf(world, "%d %d %d %d\n", &creature, &state, &pos_x, &pos_y) == 4)
     {
         for (int y = 0; y < creatures[creature].images[state].size_y; y++)
@@ -175,31 +178,48 @@ int main(int argc, char* argv[])
     offset = atoi(argv[4]);
 
     fb = load_fb();
-    bg = load_image("grass.data");
+    bg[0] = load_image("grass.data");
+    bg[1] = load_image("forest.data");
+    bg[2] = load_image("mountains.data");
     // mage
     creatures[0].images[1].size_x = 72;
     creatures[0].images[1].size_y = 72;
     creatures[0].images[1].buf = load_image("mag.data");
-    // orc
-    creatures[1].images[1].size_x = 72;
-    creatures[1].images[1].size_y = 72;
-    creatures[1].images[1].buf = load_image("orc.data");
-    creatures[1].images[0].size_x = 0;
-    creatures[1].images[0].size_y = 0;
-    creatures[1].images[0].buf = NULL;
     // fireball
-    creatures[2].images[0].size_x = 73;
-    creatures[2].images[0].size_y = 31;
-    creatures[2].images[0].buf = load_image("fireball_left.data");
-    creatures[2].images[1].size_x = 29;
-    creatures[2].images[1].size_y = 71;
-    creatures[2].images[1].buf = load_image("fireball_down.data");
-    creatures[2].images[2].size_x = 27;
-    creatures[2].images[2].size_y = 70;
-    creatures[2].images[2].buf = load_image("fireball_up.data");
-    creatures[2].images[3].size_x = 71;
-    creatures[2].images[3].size_y = 29;
-    creatures[2].images[3].buf = load_image("fireball_right.data");
+    creatures[1].images[0].size_x = 73;
+    creatures[1].images[0].size_y = 31;
+    creatures[1].images[0].buf = load_image("fireball_left.data");
+    creatures[1].images[1].size_x = 29;
+    creatures[1].images[1].size_y = 71;
+    creatures[1].images[1].buf = load_image("fireball_down.data");
+    creatures[1].images[2].size_x = 27;
+    creatures[1].images[2].size_y = 70;
+    creatures[1].images[2].buf = load_image("fireball_up.data");
+    creatures[1].images[3].size_x = 71;
+    creatures[1].images[3].size_y = 29;
+    creatures[1].images[3].buf = load_image("fireball_right.data");
+    // orc
+    creatures[2].images[1].size_x = 72;
+    creatures[2].images[1].size_y = 72;
+    creatures[2].images[1].buf = load_image("orc.data");
+    creatures[2].images[0].size_x = 0;
+    creatures[2].images[0].size_y = 0;
+    creatures[2].images[0].buf = NULL;
+    // goblin
+    creatures[3].images[1].size_x = 72;
+    creatures[3].images[1].size_y = 72;
+    creatures[3].images[1].buf = load_image("goblin.data");
+    creatures[3].images[0].size_x = 0;
+    creatures[3].images[0].size_y = 0;
+    creatures[3].images[0].buf = NULL;
+    // wolf
+    creatures[4].images[1].size_x = 72;
+    creatures[4].images[1].size_y = 72;
+    creatures[4].images[1].buf = load_image("wolf.data");
+    creatures[4].images[0].size_x = 0;
+    creatures[4].images[0].size_y = 0;
+    creatures[4].images[0].buf = NULL;
+
 
     signal(SIGUSR1, redraw);
 //    redraw(1);

@@ -12,7 +12,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details <http://www.gnu.org/licenses/>.
 # 
-# main starting script
+# starting script
+
+nohup mplayer battle-epic.ogg &
 
 while getopts "vh" OPTION ; do
     case $OPTION in
@@ -24,7 +26,7 @@ done
 trap "" INT
 
 stty -echo
-sudo kbdrate --rate=30 --delay=0
+sudo kbdrate -s --rate=30 --delay=0
 #xset r rate 10 30 
 
 ./main.sh
