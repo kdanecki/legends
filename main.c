@@ -5,6 +5,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
+#include <string.h>
+
+typedef struct image
+{
+    char* buf;
+    int size_x;
+    int size_y;
+} image;
+
+typedef struct creature
+{
+    image images[4];
+} creature;
+
+char* fb;
+char* bg;
+creature creatures[3];
 
 void* load_fb()
 {
@@ -38,7 +56,7 @@ void* load_fb()
     return addr;
 }
 
-void* load_image(char* name, int* size, int a)
+void* load_image(char* name)
 {
     void* addr;
     int fd;
@@ -63,7 +81,6 @@ void* load_image(char* name, int* size, int a)
     pa_offset = 0; //offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
     printf("%ld\n", sb.st_size);
     length = sb.st_size - offset;
-    *size = length;
     printf("%ld\n", length);
 
     addr = mmap(NULL, length, PROT_WRITE | PROT_READ, MAP_PRIVATE, fd, pa_offset);
@@ -76,17 +93,79 @@ void* load_image(char* name, int* size, int a)
     return addr;
 }
 
+void* load_world()
+{
+    void* addr;
+    int fd;
+    struct stat sb;
+    off_t offset, pa_offset;
+    size_t length;
+
+    fd = open("/dev/fb0", O_RDWR);
+    if (fd == -1)
+    {
+        printf("failed to open");
+        return NULL;
+    }
+    if (fstat(fd, &sb) == -1)
+    {
+        printf("wrong file size");
+        return NULL;
+    }
+    length = 1920*1080*4;
+    pa_offset = 0;
+    addr = mmap(NULL, length, PROT_WRITE | PROT_READ, MAP_SHARED, fd, pa_offset);
+    if (addr == MAP_FAILED)
+    {
+        printf("failed to map");
+        return NULL;
+    }
+    close(fd);
+    return addr;
+}
+
+void redraw(int sig)
+{
+    FILE* world;
+    int pos_x;
+    int pos_y;
+    int creature;
+    int state;
+
+    //memset(fb, 0, 1920*1080*4);
+    //printf("\x1b[2J");
+    memcpy(fb, bg, 1920*1080*4);
+    world = fopen("world", "r");
+    while(fscanf(world, "%d %d %d %d\n", &creature, &state, &pos_x, &pos_y) == 4)
+    {
+        for (int y = 0; y < creatures[creature].images[state].size_y; y++)
+        {
+            for (int x = 0; x < creatures[creature].images[state].size_x; x++)
+            {
+                if (pos_x*4+pos_y*1920*4+y*1920*4+x*4+3 < 1920*1080*4 && creatures[creature].images[state].buf[y*creatures[creature].images[state].size_x*4+x*4+3] != 0)
+                {
+                    fb[pos_x*4+pos_y*1920*4+y*1920*4+x*4] = creatures[creature].images[state].buf[y*creatures[creature].images[state].size_x*4+x*4+2];
+                    fb[pos_x*4+pos_y*1920*4+y*1920*4+x*4+1] = creatures[creature].images[state].buf[y*creatures[creature].images[state].size_x*4+x*4+1];
+                    fb[pos_x*4+pos_y*1920*4+y*1920*4+x*4+2] = creatures[creature].images[state].buf[y*creatures[creature].images[state].size_x*4+x*4];
+                    fb[pos_x*4+pos_y*1920*4+y*1920*4+x*4+3] = creatures[creature].images[state].buf[y*creatures[creature].images[state].size_x*4+x*4+3];
+                }
+            }
+        }
+    }
+    fclose(world);
+    printf("\n");
+
+}
+
 int main(int argc, char* argv[])
 {
-    char* fb;
+
     char* mage;
     int size;
     int y_size;
     int x_size;
     int offset;
     char a = 10;
-    int posx = 1920/2;
-    int posy = 1080/2;
 
 //    printf("%x\n", a);
 //    return 0;
@@ -96,54 +175,47 @@ int main(int argc, char* argv[])
     offset = atoi(argv[4]);
 
     fb = load_fb();
-    mage = load_image(argv[1], &size, x_size*y_size*4);
-    //printf("%s", addr);   
-    
-    for (int y = 0; y < y_size; y++)
-    {
-        for (int x = 0; x < x_size; x++)
-        {
-   //         printf("%x\n", mage[y*x_size+x*4]&255);
-  //          printf("%x\n", mage[y*x_size+x*4+1]&255);
- //           printf("%x\n", mage[y*x_size+x*4+2]&255);
-//            printf("%x\n", mage[y*x_size+x*4+3]&255);
-            fb[posx*4+posy*1920*4+y*1920*4+x*4] = mage[y*x_size*4+x*4+2];
-            fb[posx*4+posy*1920*4+y*1920*4+x*4+1] = mage[y*x_size*4+x*4+1];
-            fb[posx*4+posy*1920*4+y*1920*4+x*4+2] = mage[y*x_size*4+x*4];
-            fb[posx*4+posy*1920*4+y*1920*4+x*4+3] = mage[y*x_size*4+x*4+3];
-//            fb[y*1920+x] = 0xffffffff;
-  //          mage[y*72+x] = 0xffffffff;
-        }
-//        fb[i] = 0xffff0000;
-//        printf("%c", fb[i]);
-    }
+    bg = load_image("grass.data");
+    // mage
+    creatures[0].images[1].size_x = 72;
+    creatures[0].images[1].size_y = 72;
+    creatures[0].images[1].buf = load_image("mag.data");
+    // orc
+    creatures[1].images[1].size_x = 72;
+    creatures[1].images[1].size_y = 72;
+    creatures[1].images[1].buf = load_image("orc.data");
+    creatures[1].images[0].size_x = 0;
+    creatures[1].images[0].size_y = 0;
+    creatures[1].images[0].buf = NULL;
+    // fireball
+    creatures[2].images[0].size_x = 73;
+    creatures[2].images[0].size_y = 31;
+    creatures[2].images[0].buf = load_image("fireball_left.data");
+    creatures[2].images[1].size_x = 29;
+    creatures[2].images[1].size_y = 71;
+    creatures[2].images[1].buf = load_image("fireball_down.data");
+    creatures[2].images[2].size_x = 27;
+    creatures[2].images[2].size_y = 70;
+    creatures[2].images[2].buf = load_image("fireball_up.data");
+    creatures[2].images[3].size_x = 71;
+    creatures[2].images[3].size_y = 29;
+    creatures[2].images[3].buf = load_image("fireball_right.data");
 
-    for (int y = 0; y < y_size; y++)
+    signal(SIGUSR1, redraw);
+//    redraw(1);
+    while (1)
     {
-        for (int x = 0; x < x_size; x++)
-        {
-//            printf("%x\n", mage[y*x_size+x]&255);
-            if (mage[y*x_size*4+4*x+3] != (char) 0)
-            {
-            //    printf("draw");
-            fb[64+y*1920*4+x*4] = mage[y*x_size*4+x*4+1];
-            fb[64+y*1920*4+x*4+1] = mage[y*x_size*4+x*4+2];
-            fb[64+y*1920*4+x*4+2] = mage[y*x_size*4+x*4];
-            fb[64+y*1920*4+x*4+3] = mage[y*x_size*4+x*4+3];
-            }
-            else {
-              //  printf("%x\n", mage[y*x_size*4+x*4+3]);
-            }
-//            fb[y*1920+x] = 0xffffffff;
-  //          mage[y*72+x] = 0xffffffff;
-        }
-//        fb[i] = 0xffff0000;
-//        printf("%c", fb[i]);
+        sleep(10);
     }
-//    addr[0] = 'B';
-//    printf("\n%c\n", addr[0]);
-
-    munmap(fb, size/*length + offset - pa_offset*/);
+   
+    munmap(fb, 1920*1080*4/*size*//*length + offset - pa_offset*/);
 
     return 0;
 }
+
+
+
+   //         printf("%x\n", images[0].buf[y*x_size+x*4]&255);
+  //          printf("%x\n", images[0].buf[y*x_size+x*4+1]&255);
+ //           printf("%x\n", images[0].buf[y*x_size+x*4+2]&255);
+//            printf("%x\n", images[0].buf[y*x_size+x*4+3]&255);
