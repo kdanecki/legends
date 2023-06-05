@@ -25,5 +25,5 @@ do
         kill -USR1 $1
  #       delay=$speed
 #    fi
-    sleep 0.02
+    sleep 0.03
 done

@@ -41,6 +41,15 @@ draw () {
     fi
 }
 
+normalize () {
+    if [[ $1 -gt 0 ]] ; then
+        echo 1
+    elif [[ $1 -lt 0 ]] ; then
+        echo -1
+    else
+        echo 0
+    fi
+}
 
 tick () {
     kill -USR1 $DRAWPID
@@ -64,6 +73,7 @@ tick () {
         player[x]=$((${player[x]}+$SPEED))
     fi
     draw
+#    echo "bla bla$(normalize 10)"
     if [[ $((TICK--)) -le 0 ]] ; then  
         action=""
     fi
@@ -71,9 +81,11 @@ tick () {
     for i in `seq 0 10`
     do
         if [[ world["enemy$i,hp"] -gt 0 ]] ; then
-            DISTANCEX=$((player[x]-world["enemy$i,x"]))
-            DISTANCEY=$((player[y]-world["enemy$i,y"]))
-            if [[ ${DISTANCEX#-} -lt world["enemy$i,cx"] && ${DISTANCEY#-} -lt world["enemy$i,cy"] ]]
+            DISTANCEXPLAYER=$((player[x]-world["enemy$i,x"]))
+            DISTANCEYPLAYER=$((player[y]-world["enemy$i,y"]))
+            DIRX=`normalize $DISTANCEXPLAYER`
+            DIRY=`normalize $DISTANCEYPLAYER`
+            if [[ ${DISTANCEXPLAYER#-} -lt world["enemy$i,cx"] && ${DISTANCEYPLAYER#-} -lt world["enemy$i,cy"] ]]
             then
                 ((player[hp] -= ${world["enemy$i,hp"]}))
                 if [[ ${player[hp]} -le 0 ]] ; then
@@ -85,10 +97,14 @@ tick () {
             fi
             DISTANCEX=$((FIREBALL[x]-(world["enemy$i,x"]+world["enemy$i,cx"]/2)))
             DISTANCEY=$((FIREBALL[y]-(world["enemy$i,y"]+world["enemy$i,cy"]/2)))
-            if [[ ${DISTANCEX#-} -lt world["enemy$i,cx"] && ${DISTANCEY#-} -lt world["enemy$i,cy"] ]]
+            if [[ ${FIREBALL[spawned]} -eq 1 && ${DISTANCEX#-} -lt world["enemy$i,cx"] && ${DISTANCEY#-} -lt world["enemy$i,cy"] ]]
             then
                 world["enemy$i,hp"]="0"
                 FIREBALL[spawned]=0
+            fi
+            if [[ world["enemy$i,hp"] -gt 0 ]] ; then
+                ((world["enemy$i,y"] += $DIRY * $OSPEED))
+                ((world["enemy$i,x"] += $DIRX * $OSPEED))
             fi
         fi
     done
@@ -140,12 +156,13 @@ XSIZE=1920
 YSIZE=1080
 SPEED=5
 FSPEED=10
+OSPEED=3
 TICK=0
 
 declare -A player
-player[x]=100
-player[y]=400
-player[hp]=10
+player[x]=$((RANDOM % (XSIZE-100)))
+player[y]=$((RANDOM % (YSIZE-100)))
+player[hp]=3
 player[cx]=72
 player[cy]=72
 
