@@ -178,47 +178,47 @@ int main(int argc, char* argv[])
     offset = atoi(argv[4]);
 
     fb = load_fb();
-    bg[0] = load_image("grass.data");
-    bg[1] = load_image("forest.data");
-    bg[2] = load_image("mountains.data");
+    bg[0] = load_image("images/grass.data");
+    bg[1] = load_image("images/forest.data");
+    bg[2] = load_image("images/mountains.data");
     // mage
     creatures[0].images[1].size_x = 72;
     creatures[0].images[1].size_y = 72;
-    creatures[0].images[1].buf = load_image("mag.data");
+    creatures[0].images[1].buf = load_image("images/mag.data");
     // fireball
     creatures[1].images[0].size_x = 73;
     creatures[1].images[0].size_y = 31;
-    creatures[1].images[0].buf = load_image("fireball_left.data");
+    creatures[1].images[0].buf = load_image("images/fireball_left.data");
     creatures[1].images[1].size_x = 29;
     creatures[1].images[1].size_y = 71;
-    creatures[1].images[1].buf = load_image("fireball_down.data");
+    creatures[1].images[1].buf = load_image("images/fireball_down.data");
     creatures[1].images[2].size_x = 27;
     creatures[1].images[2].size_y = 70;
-    creatures[1].images[2].buf = load_image("fireball_up.data");
+    creatures[1].images[2].buf = load_image("images/fireball_up.data");
     creatures[1].images[3].size_x = 71;
     creatures[1].images[3].size_y = 29;
-    creatures[1].images[3].buf = load_image("fireball_right.data");
+    creatures[1].images[3].buf = load_image("images/fireball_right.data");
     // orc
     creatures[2].images[1].size_x = 72;
     creatures[2].images[1].size_y = 72;
-    creatures[2].images[1].buf = load_image("orc.data");
+    creatures[2].images[1].buf = load_image("images/orc.data");
     creatures[2].images[0].size_x = 72;
     creatures[2].images[0].size_y = 72;
-    creatures[2].images[0].buf = load_image("orc_dead.data");
+    creatures[2].images[0].buf = load_image("images/orc_dead.data");
     // goblin
     creatures[3].images[1].size_x = 72;
     creatures[3].images[1].size_y = 72;
-    creatures[3].images[1].buf = load_image("goblin.data");
+    creatures[3].images[1].buf = load_image("images/goblin.data");
     creatures[3].images[0].size_x = 72;
     creatures[3].images[0].size_y = 72;
-    creatures[3].images[0].buf = load_image("goblin_dead.data");
+    creatures[3].images[0].buf = load_image("images/goblin_dead.data");
     // wolf
     creatures[4].images[1].size_x = 72;
     creatures[4].images[1].size_y = 72;
-    creatures[4].images[1].buf = load_image("wolf.data");
+    creatures[4].images[1].buf = load_image("images/wolf.data");
     creatures[4].images[0].size_x = 72;
     creatures[4].images[0].size_y = 72;
-    creatures[4].images[0].buf = load_image("wolf_dead.data");
+    creatures[4].images[0].buf = load_image("images/wolf_dead.data");
 
 
     signal(SIGUSR1, redraw);
