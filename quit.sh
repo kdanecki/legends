@@ -23,5 +23,6 @@ do
 done
 stty echo
 killall ./a.out
+killall mplayer
 
 echo "bye bye"

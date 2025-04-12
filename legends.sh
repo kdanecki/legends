@@ -14,14 +14,14 @@
 # 
 # starting script
 
-nohup mplayer battle-epic.ogg &
-
 while getopts "vh" OPTION ; do
     case $OPTION in
         v) echo 0.1 ; exit ;;
-        h) echo "pomoc" ; exit ;;
+        h) echo "help" ; echo "start only with ./legends.sh" ; echo "wasd - move" ; echo "hjkl - fire"; echo "-v version"; echo "-h help" ; exit ;;
     esac
 done
+
+nohup mplayer battle-epic.ogg &
 
 trap "" INT
 

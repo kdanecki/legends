@@ -202,23 +202,23 @@ int main(int argc, char* argv[])
     creatures[2].images[1].size_x = 72;
     creatures[2].images[1].size_y = 72;
     creatures[2].images[1].buf = load_image("orc.data");
-    creatures[2].images[0].size_x = 0;
-    creatures[2].images[0].size_y = 0;
-    creatures[2].images[0].buf = NULL;
+    creatures[2].images[0].size_x = 72;
+    creatures[2].images[0].size_y = 72;
+    creatures[2].images[0].buf = load_image("orc_dead.data");
     // goblin
     creatures[3].images[1].size_x = 72;
     creatures[3].images[1].size_y = 72;
     creatures[3].images[1].buf = load_image("goblin.data");
-    creatures[3].images[0].size_x = 0;
-    creatures[3].images[0].size_y = 0;
-    creatures[3].images[0].buf = NULL;
+    creatures[3].images[0].size_x = 72;
+    creatures[3].images[0].size_y = 72;
+    creatures[3].images[0].buf = load_image("goblin_dead.data");
     // wolf
     creatures[4].images[1].size_x = 72;
     creatures[4].images[1].size_y = 72;
     creatures[4].images[1].buf = load_image("wolf.data");
-    creatures[4].images[0].size_x = 0;
-    creatures[4].images[0].size_y = 0;
-    creatures[4].images[0].buf = NULL;
+    creatures[4].images[0].size_x = 72;
+    creatures[4].images[0].size_y = 72;
+    creatures[4].images[0].buf = load_image("wolf_dead.data");
 
 
     signal(SIGUSR1, redraw);

@@ -233,8 +233,8 @@ HP[4]=3
 TICK=0
 
 declare -A player
-player[x]=$((RANDOM % (XSIZE-100)))
-player[y]=$((RANDOM % (YSIZE-100)))
+player[x]=960
+player[y]=540
 player[hp]=3
 player[cx]=72
 player[cy]=72
@@ -250,9 +250,17 @@ FIREBALL[dir]=0
 
 for i in `seq 0 10`
 do
-    world["enemy$i,x"]=$(($RANDOM%1800))
-    world["enemy$i,y"]=$(($RANDOM%1000))
-    world["enemy$i,hp"]=3
+    if [[ $((RANDOM%2)) == 1 ]] ; then
+        world["enemy$i,x"]=$(($RANDOM%500))
+    else
+        world["enemy$i,x"]=$((1400 + $RANDOM%400))
+    fi
+    if [[ $((RANDOM%2)) == 1 ]] ; then
+        world["enemy$i,y"]=$(($RANDOM%300))
+    else
+        world["enemy$i,y"]=$((700 + $RANDOM%300))
+    fi
+    world["enemy$i,hp"]=0
     world["enemy$i,cx"]=72
     world["enemy$i,cy"]=72
     world["enemy$i,type"]=$((2+(RANDOM%3)))
@@ -266,6 +274,11 @@ sleep 1
 trap "tick" USR1
 ./timer.sh $$ &
 i=20
+draw
+for i in `seq 0 10`
+do
+    world["enemy$i,hp"]=${HP[${world["enemy$i,type"]}]}
+done
 while true #[[ $i -gt 0 ]]
 do
     
